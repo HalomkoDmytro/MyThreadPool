@@ -24,7 +24,11 @@ public class MyExecutors implements MyExecutorService {
     private class PullWorker extends Thread {
         @Override
         public void run() {
-            Runnable task = queue.poll();
+            Runnable task = null;
+            while (!isInterrupted() && task == null) {
+                task = queue.poll();
+            }
+
             while (task != null) {
                 task.run();
                 task = queue.poll();

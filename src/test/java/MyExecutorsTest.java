@@ -1,7 +1,10 @@
+import gl.App;
 import gl.exceptions.WorkQueueIsFullException;
 import gl.executor.MyExecutorService;
 import gl.executor.MyExecutors;
 import org.junit.Test;
+
+import java.util.Random;
 
 import static junit.framework.TestCase.assertTrue;
 
@@ -9,11 +12,15 @@ public class MyExecutorsTest {
 
     private Runnable getTask() {
         return () -> {
-            double a = 999;
-            for (int i = 0; i < 1_000_000; i++) {
+            double a = new Random().nextInt(10000);
+            for (int i = 0; i < 1_000_0000; i++) {
+                if(Thread.currentThread().isInterrupted()) {
+                    System.out.println("is interrupt");
+                    return;
+                }
                 a = a + Math.tan(a);
             }
-            System.out.println("task complete!");
+            System.out.println("Task is done.");
         };
     }
 

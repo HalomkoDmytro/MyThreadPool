@@ -28,6 +28,9 @@ public class MyExecutors implements MyExecutorService {
             while (task != null) {
                 task.run();
                 task = queue.poll();
+                while (!isInterrupted() && task == null) {
+                    task = queue.poll();
+                }
             }
         }
     }
@@ -61,7 +64,7 @@ public class MyExecutors implements MyExecutorService {
 
     @Override
     public void shutdownNow() {
-        for (PullWorker pullWorker : threads){
+        for (PullWorker pullWorker : threads) {
             pullWorker.interrupt();
         }
     }

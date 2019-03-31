@@ -13,7 +13,7 @@ public class MyExecutorsTest {
     private Runnable getTask() {
         return () -> {
             double a = new Random().nextInt(10000);
-            for (int i = 0; i < 1_000_0000; i++) {
+            for (int i = 0; i < 1_000_000_0; i++) {
                 if(Thread.currentThread().isInterrupted()) {
                     System.out.println("is interrupt");
                     return;
@@ -26,7 +26,7 @@ public class MyExecutorsTest {
 
     @Test(expected = WorkQueueIsFullException.class)
     public void testToMuchWork() {
-        MyExecutorService executor = MyExecutors.newFixedThreadPool(2, 2);
+        MyExecutorService executor = MyExecutors.newFixedThreadPool(1, 1);
         executor.execute(getTask());
         executor.execute(getTask());
         executor.execute(getTask());

@@ -1,6 +1,36 @@
 package gl.executor;
 
+import gl.exceptions.WorkQueueIsFullException;
+import gl.taskQueue.TaskQueue;
+
 public class MyExecutors implements MyExecutorService {
+
+    private final PullWorker[] threads;
+    private final TaskQueue queue;
+    private final int workQueueSize;
+
+    private MyExecutors(int poolSize, int workQueueSize) {
+        queue = new TaskQueue();
+        threads = new PullWorker[poolSize];
+
+        for (int i = 0; i < poolSize; i++) {
+            threads[i] = new PullWorker();
+            threads[i].start();
+        }
+
+        this.workQueueSize = workQueueSize;
+    }
+
+    private class PullWorker extends Thread {
+        @Override
+        public void run() {
+            Runnable task = queue.poll();
+            while (task != null) {
+                task.run();
+                task = queue.poll();
+            }
+        }
+    }
 
     /**
      * Creates a new ThreadPool with the given initial number of threads and work queue size
@@ -12,7 +42,7 @@ public class MyExecutors implements MyExecutorService {
      *                      tasks submitted by the {@code execute} method.
      */
     public static MyExecutorService newFixedThreadPool(int poolSize, int workQueueSize) {
-        return null;
+        return new MyExecutors(poolSize, workQueueSize);
     }
 
     public static MyExecutorService newFixedThreadPool(int poolSize) {
@@ -21,10 +51,18 @@ public class MyExecutors implements MyExecutorService {
 
     @Override
     public void execute(Runnable command) {
+        synchronized (queue) {
+            if (queue.getSize() >= workQueueSize) {
+                throw new WorkQueueIsFullException("Work queue is full, max size of queue are " + workQueueSize);
+            }
+            queue.add(command);
+        }
     }
 
     @Override
     public void shutdownNow() {
-
+        for (PullWorker pullWorker : threads){
+            pullWorker.interrupt();
+        }
     }
 }
